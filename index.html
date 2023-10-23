@@ -1,0 +1,146 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
+		<style type="text/css">
+			#toast-container > div {
+				opacity: 1 !important;
+			}
+			.toast-message {
+				font-family: sans-serif;
+			}
+
+			span#display-password {
+				font-family: monospace;
+			}
+			p.disclaimer{
+				font-family: sans-serif;
+			}
+			input[type=text] {
+				max-width: 70vw
+			}
+		</style>
+		<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+		<script type="text/javascript">
+			var charTypes = {
+				'upper': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+				'lower': 'abcdefghijklmnopqrstuvwxyz',
+				'number': '0123456789',
+				'special': '!$%^&*()-=+[]{};#:@~,./<>?'
+			};
+
+			window.onload = function() { 
+				var inputs = document.querySelectorAll('form div input[type=text]');
+				for (var i = 0; i < inputs.length; i++) {
+					var input = inputs[i];
+					var div = input.parentNode;
+					//set initial value
+					var type = div.id;
+					input.value = charTypes[type];
+					input.size = 40;
+					//hook up reset handler
+					var anchor = div.querySelector('a');
+					anchor.onclick = function (input, type) {
+						return function () {
+							input.value = charTypes[type];
+							return false;
+						};
+					}(input, type);
+				}
+			}
+
+			function _generatePassword(passwordLength, charBlocks) {
+				var allChars = "";
+				for (var i = 0; i < charBlocks.length; i++) {
+					allChars += charBlocks[i];
+				}
+				var numChars = allChars.length;
+				var password = "";
+				for (var i = 1; i <= passwordLength; i++) {
+					password += allChars.charAt(Math.floor(Math.random() * numChars));
+				}
+				return password;
+			}
+
+			function generatePassword(passwordLength) {
+				var charBlocks = [];
+				for (id in charTypes) {
+					var isTicked = document.querySelector('div#' + id + ' input[type=checkbox]').checked;
+					var value = document.querySelector('div#' + id + ' input[type=text]').value;
+					if (isTicked) {
+						charBlocks.push(value);
+					}
+				}
+				
+				var $length = document.getElementById('length');
+				var passwordLength = parseInt($length.value)
+				
+				var password = _generatePassword(passwordLength, charBlocks);
+				var $display = document.getElementById('display-password');
+				$display.textContent = password;
+				selectAndCopy()
+			}
+		</script>
+	</head>
+	<body>
+		<div class="outer" title=" ">
+			<form>
+				<div id="upper">
+					<input type="checkbox" checked><input type="text">
+					<span>  <a href="#">reset</a></span>
+				</div>
+				<div id="lower">
+					<input type="checkbox" checked><input type="text">
+					<span>  <a href="#">reset</a></span>
+				</div>
+				<div id="number">
+					<input type="checkbox" checked><input type="text">
+					<span>  <a href="#">reset</a></span>
+				</div>
+				<div id="special">
+					<input type="checkbox" checked><input type="text">
+					<span>  <a href="#">reset</a></span>
+				</div>
+				<br />
+				Length: <input id="length" type="text" value="50"><br />
+				<input type="submit" value="Generate" onclick="generatePassword(); return false;">
+			</form>
+			<p>
+				<span id="display-password"></span>
+			</p>
+			<button class="copy-button">
+				<i class="fa fa-clipboard" aria-hidden="true"></i>
+			</button>
+			<hr />
+			<p class="disclaimer">I am not responsible for anything bad that happens as a result of your use of this tool or its code. This tool is meant purely for education. Password security is an important and complex topic and you should not blindly trust some random page on the internet.</p>
+		</div>
+		<script type="text/javascript">
+			toastr.options = {
+				"positionClass": "toast-top-center"
+			}
+
+			var buttonSelector = '.copy-button';
+				
+			function showMessage(message) {
+				toastr.success(message)
+			}
+			
+			$(buttonSelector).click(selectAndCopy)
+
+			function selectAndCopy() {
+				var span = document.getElementById('display-password')
+				var range = document.createRange();
+				range.setStartBefore(span.firstChild);
+				range.setEndAfter(span.lastChild);
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+				document.execCommand("copy");
+				showMessage("Copied.");
+			}
+		</script>
+	</body>
+</html>
